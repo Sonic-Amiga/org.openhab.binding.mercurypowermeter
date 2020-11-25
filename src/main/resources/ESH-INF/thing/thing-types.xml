@@ -3,23 +3,46 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
-
-	<!-- Sample Thing Type -->
-	<thing-type id="sample">
-		<label>MercuryPowerMeter Binding Thing</label>
-		<description>Sample thing for MercuryPowerMeter Binding</description>
-
+	<bridge-type id="serial_bus">
+        <label>Serial bus</label>
+        <description>RS485 bus to which your power meters are connected</description>
+        <config-description>
+            <parameter name="port" type="text" required="true">
+                <label>Serial Port</label>
+                <context>serial-port</context>
+                <description>Serial port to use, for example /dev/ttyS0 or COM1</description>
+                <default>/dev/ttyS0</default>
+            </parameter>
+            <parameter name="baud" type="integer" multiple="false">
+                <label>Baud</label>
+                <description>Baud of the connection</description>
+                <default>9600</default>
+                <options>
+                    <option value="600">600</option>
+                    <option value="1200">1200</option>
+                    <option value="2400">2400</option>
+                    <option value="4800">4800</option>
+                    <option value="9600">9600</option>
+                </options>
+            </parameter>
+        </config-description>
+    </bridge-type>
+	<thing-type id="meter">
+       <supported-bridge-type-refs>
+            <bridge-type-ref id="serial_bus" />
+        </supported-bridge-type-refs>
+		<label>Power meter</label>
+		<description>Mercury power meter</description>
 		<channels>
 			<channel id="channel1" typeId="sample-channel" />
 		</channels>
-
 		<config-description>
-			<parameter name="config1" type="text" required="true">
-				<label>Sample Parameter</label>
-				<description>This is a sample text configuration parameter</description>
-			</parameter>
+            <parameter name="address" type="integer">
+                <label>Address</label>
+                <description>Counter address.</description>
+                <default>1</default>
+            </parameter>
 		</config-description>
-
 	</thing-type>
 
 	<!-- Sample Channel Type -->
