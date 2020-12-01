@@ -65,7 +65,7 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
         }
 
         try {
-            commPort.setSerialPortParams(config.baudrate, SerialPort.DATABITS_8, SerialPort.STOPBITS_1,
+            commPort.setSerialPortParams(config.baud, SerialPort.DATABITS_8, SerialPort.STOPBITS_1,
                     SerialPort.PARITY_NONE);
             commPort.enableReceiveThreshold(8);
             commPort.enableReceiveTimeout(1000);

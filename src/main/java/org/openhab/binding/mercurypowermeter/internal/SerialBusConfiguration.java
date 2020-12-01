@@ -19,5 +19,5 @@ package org.openhab.binding.mercurypowermeter.internal;
  */
 public class SerialBusConfiguration {
     public String port;
-    public int baudrate;
+    public int baud;
 }
