@@ -4,7 +4,7 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 	<bridge-type id="serial_bus">
-        <label>Serial bus</label>
+        <label>Mercury serial bus</label>
         <description>RS485 bus to which your power meters are connected</description>
         <config-description>
             <parameter name="port" type="text" required="true">
@@ -31,10 +31,25 @@
        <supported-bridge-type-refs>
             <bridge-type-ref id="serial_bus" />
         </supported-bridge-type-refs>
-		<label>Power meter</label>
+		<label>Mercury power meter</label>
 		<description>Mercury power meter</description>
 		<channels>
-			<channel id="channel1" typeId="sample-channel" />
+			<channel id="count1" typeId="count">
+			    <label>Counter 1</label>
+			    <description>Energy consumed for tariff #1</description>
+			</channel>
+            <channel id="count2" typeId="count">
+                <label>Counter 2</label>
+                <description>Energy consumed for tariff #2</description>
+            </channel>
+            <channel id="count3" typeId="count">
+                <label>Counter 3</label>
+                <description>Energy consumed for tariff #3</description>
+            </channel>
+            <channel id="count4" typeId="count">
+                <label>Counter 4</label>
+                <description>Energy consumed for tariff #4</description>
+            </channel>
 		</channels>
 		<config-description>
             <parameter name="address" type="integer">
@@ -42,14 +57,17 @@
                 <description>Counter address.</description>
                 <default>1</default>
             </parameter>
+            <parameter name="poll_interval" type="integer">
+                <label>Poll interval</label>
+                <description>Poll interval in seconds</description>
+                <default>1</default>
+            </parameter>
 		</config-description>
 	</thing-type>
 
-	<!-- Sample Channel Type -->
-	<channel-type id="sample-channel">
-		<item-type>mercurypowermeterItem</item-type>
-		<label>MercuryPowerMeter Binding Channel</label>
-		<description>Sample channel for MercuryPowerMeter Binding</description>
+	<channel-type id="count">
+		<item-type>Number</item-type>
+		<label>Counter</label>
 	</channel-type>
 
 </thing:thing-descriptions>

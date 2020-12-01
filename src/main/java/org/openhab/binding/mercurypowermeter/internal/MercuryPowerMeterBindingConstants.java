@@ -31,5 +31,8 @@ public class MercuryPowerMeterBindingConstants {
     public static final ThingTypeUID THING_TYPE_SERIAL = new ThingTypeUID(BINDING_ID, "serial_bus");
 
     // List of all Channel ids
-    public static final String CHANNEL_1 = "channel1";
+    public static final String CH_COUNT1 = "count1";
+    public static final String CH_COUNT2 = "count2";
+    public static final String CH_COUNT3 = "count3";
+    public static final String CH_COUNT4 = "count4";
 }

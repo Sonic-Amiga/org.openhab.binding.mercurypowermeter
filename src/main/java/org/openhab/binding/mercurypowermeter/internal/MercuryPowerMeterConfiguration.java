@@ -18,9 +18,6 @@ package org.openhab.binding.mercurypowermeter.internal;
  * @author Pavel Fedin - Initial contribution
  */
 public class MercuryPowerMeterConfiguration {
-
-    /**
-     * Sample configuration parameter. Replace with your own.
-     */
-    public String config1;
+    public int address;
+    public int poll_interval;
 }

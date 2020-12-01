@@ -14,14 +14,27 @@ package org.openhab.binding.mercurypowermeter.internal;
 
 import static org.openhab.binding.mercurypowermeter.internal.MercuryPowerMeterBindingConstants.*;
 
+import java.io.IOException;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import javax.xml.bind.DatatypeConverter;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.smarthome.core.library.types.DecimalType;
+import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
+import org.eclipse.smarthome.core.thing.binding.BridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
+import org.openhab.binding.mercurypowermeter.internal.MercuryProtocol.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +49,25 @@ public class MercuryPowerMeterHandler extends BaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(MercuryPowerMeterHandler.class);
 
-    private @Nullable MercuryPowerMeterConfiguration config;
+    private static enum DataItem {
+
+        COUNTER(MercuryProtocol.Command.READ_POWER);
+
+        private byte command;
+
+        DataItem(byte command) {
+            this.command = command;
+        }
+
+        public byte getCommand() {
+            return command;
+        }
+    }
+
+    private MercuryPowerMeterConfiguration config = new MercuryPowerMeterConfiguration();
+    private @Nullable ScheduledFuture<?> pollFuture;
+    private @Nullable SerialBusHandler bus;
+    private Set<DataItem> pollSet = EnumSet.noneOf(DataItem.class);
 
     public MercuryPowerMeterHandler(Thing thing) {
         super(thing);
@@ -44,55 +75,117 @@ public class MercuryPowerMeterHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        if (CHANNEL_1.equals(channelUID.getId())) {
-            if (command instanceof RefreshType) {
-                // TODO: handle data refresh
+        String ch = channelUID.getId();
+
+        if (command instanceof RefreshType) {
+            switch (ch) {
+                case CH_COUNT1:
+                case CH_COUNT2:
+                case CH_COUNT3:
+                case CH_COUNT4:
+                    addPolledItem(DataItem.COUNTER);
+                    break;
             }
-
-            // TODO: handle command
-
-            // Note: if communication with thing fails for some reason,
-            // indicate that by setting the status with detail information:
-            // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-            // "Could not control device at IP address x.x.x.x");
         }
     }
 
     @Override
     public void initialize() {
-        // logger.debug("Start initializing!");
+        Bridge bridge = getBridge();
+
+        if (bridge == null) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_INITIALIZING_ERROR, "Bridge not present");
+            return;
+        }
+
+        BridgeHandler handler = bridge.getHandler();
+
+        if (handler == null) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_INITIALIZING_ERROR, "Bridge has no handler");
+            return;
+        }
+
+        bus = (SerialBusHandler) handler;
         config = getConfigAs(MercuryPowerMeterConfiguration.class);
 
-        // TODO: Initialize the handler.
-        // The framework requires you to return from this method quickly. Also, before leaving this method a thing
-        // status from one of ONLINE, OFFLINE or UNKNOWN must be set. This might already be the real thing status in
-        // case you can decide it directly.
-        // In case you can not decide the thing status directly (e.g. for long running connection handshake using WAN
-        // access or similar) you should set status UNKNOWN here and then decide the real status asynchronously in the
-        // background.
-
-        // set the thing status to UNKNOWN temporarily and let the background task decide for the real status.
-        // the framework is then able to reuse the resources from the thing handler initialization.
-        // we set this upfront to reliably check status updates in unit tests.
         updateStatus(ThingStatus.UNKNOWN);
+        logger.trace("Successfully initialized, starting poll");
+        pollFuture = scheduler.scheduleWithFixedDelay(this::poll, 1, config.poll_interval, TimeUnit.SECONDS);
+    }
 
-        // Example for background initialization:
-        scheduler.execute(() -> {
-            boolean thingReachable = true; // <background task with long running initialization here>
-            // when done do:
-            if (thingReachable) {
+    @Override
+    public void dispose() {
+        stopPoll();
+    }
+
+    private void stopPoll() {
+        if (pollFuture != null) {
+            pollFuture.cancel(true);
+            pollFuture = null;
+        }
+    }
+
+    private void addPolledItem(DataItem item) {
+        logger.debug("Adding polling for {}", item);
+        synchronized (pollSet) {
+            pollSet.add(item);
+        }
+    }
+
+    private synchronized void poll() {
+        SerialBusHandler bus = this.bus;
+
+        if (bus == null) {
+            // This is an impossible situation but Eclipse forces us to handle it
+            logger.warn("No Bridge while polling");
+            stopPoll();
+            return;
+        }
+
+        try {
+            boolean ok = true;
+            Set<DataItem> localSet;
+
+            synchronized (pollSet) {
+                if (pollSet.isEmpty()) {
+                    return;
+                }
+                localSet = EnumSet.copyOf(pollSet);
+            }
+
+            for (DataItem item : localSet) {
+                Packet pkt = new Packet(config.address, item.getCommand());
+                Packet reply = bus.doPacket(pkt);
+
+                if (reply == null) {
+                    updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE);
+                    return;
+                }
+
+                ok = reply.isValid();
+
+                if (ok) {
+                    switch (reply.getCommand()) {
+                        case MercuryProtocol.Command.READ_POWER:
+                            updateState(CH_COUNT1, new DecimalType(reply.getInt(0)));
+                            updateState(CH_COUNT2, new DecimalType(reply.getInt(4)));
+                            updateState(CH_COUNT3, new DecimalType(reply.getInt(8)));
+                            updateState(CH_COUNT4, new DecimalType(reply.getInt(12)));
+                            break;
+                    }
+                } else {
+                    logger.warn("Invalid reply received: {}", DatatypeConverter.printHexBinary(reply.getBuffer()));
+                }
+            }
+
+            if (ok) {
                 updateStatus(ThingStatus.ONLINE);
             } else {
-                updateStatus(ThingStatus.OFFLINE);
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Invalid response received");
             }
-        });
+        } catch (IOException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
+        }
 
-        // logger.debug("Finished initializing!");
-
-        // Note: When initialization can NOT be done set the status with more details for further
-        // analysis. See also class ThingStatusDetail for all available status details.
-        // Add a description to give user information to understand why thing does not work as expected. E.g.
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-        // "Can not access device as username and/or password are invalid");
     }
 }

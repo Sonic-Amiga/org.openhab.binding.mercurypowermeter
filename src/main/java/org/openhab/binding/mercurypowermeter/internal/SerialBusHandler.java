@@ -21,6 +21,7 @@ import org.eclipse.smarthome.io.transport.serial.SerialPortEventListener;
 import org.eclipse.smarthome.io.transport.serial.SerialPortIdentifier;
 import org.eclipse.smarthome.io.transport.serial.SerialPortManager;
 import org.eclipse.smarthome.io.transport.serial.UnsupportedCommOperationException;
+import org.openhab.binding.mercurypowermeter.internal.MercuryProtocol.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +68,7 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
             commPort.setSerialPortParams(config.baudrate, SerialPort.DATABITS_8, SerialPort.STOPBITS_1,
                     SerialPort.PARITY_NONE);
             commPort.enableReceiveThreshold(8);
-            commPort.enableReceiveTimeout(100);
+            commPort.enableReceiveTimeout(1000);
             commPort.setFlowControlMode(SerialPort.FLOWCONTROL_NONE);
         } catch (UnsupportedCommOperationException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Invalid port configuration");
@@ -111,6 +112,8 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
         this.dataIn = dataIn;
         this.dataOut = dataOut;
 
+        logger.trace("Successfully initialized");
+
         updateStatus(ThingStatus.ONLINE);
     }
 
@@ -149,5 +152,56 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
             Thread.sleep(Long.MAX_VALUE);
         } catch (InterruptedException e) {
         }
+    }
+
+    public synchronized @Nullable Packet doPacket(Packet pkt) throws IOException {
+        OutputStream dataOut = this.dataOut;
+        InputStream dataIn = this.dataIn;
+
+        if (dataOut == null || dataIn == null) {
+            return null;
+        }
+
+        int read_length;
+
+        // Reply length depends on the command
+        switch (pkt.getCommand()) {
+            case MercuryProtocol.Command.READ_POWER:
+                read_length = 4;
+                break;
+            case MercuryProtocol.Command.READ_COUNTERS:
+                read_length = 16;
+                break;
+            case MercuryProtocol.Command.READ_TARIFFS:
+                read_length = 1;
+                break;
+            case MercuryProtocol.Command.READ_UIP:
+                read_length = 7;
+                break;
+            default:
+                throw new IllegalStateException("Unknown command code");
+        }
+
+        read_length += Packet.MIN_LENGTH;
+
+        dataOut.write(pkt.getBuffer());
+
+        int read_offset = 0;
+        byte[] in_buffer = new byte[read_length];
+
+        while (read_length > 0) {
+            int n = dataIn.read(in_buffer, read_offset, read_length);
+
+            if (n < 0) {
+                throw new IOException("EOF from serial port");
+            } else if (n == 0) {
+                throw new IOException("Serial read timeout");
+            }
+
+            read_offset += n;
+            read_length -= n;
+        }
+
+        return new Packet(in_buffer);
     }
 }
