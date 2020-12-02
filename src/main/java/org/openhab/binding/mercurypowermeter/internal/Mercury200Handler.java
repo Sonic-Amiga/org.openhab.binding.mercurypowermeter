@@ -12,10 +12,12 @@
  */
 package org.openhab.binding.mercurypowermeter.internal;
 
-import static org.openhab.binding.mercurypowermeter.internal.MercuryBindingConstants.*;
+import static org.openhab.binding.mercurypowermeter.internal.MercuryBindingConstants.CH_COUNT;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -46,12 +48,12 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class Mercury200Handler extends BaseThingHandler {
-
+    private static final Set<String> CH_COUNT_SET = new HashSet<>(Arrays.asList(CH_COUNT));
     private final Logger logger = LoggerFactory.getLogger(Mercury200Handler.class);
 
     private static enum DataItem {
 
-        COUNTER(M200Protocol.Command.READ_POWER);
+        COUNTER(M200Protocol.Command.READ_COUNTERS);
 
         private byte command;
 
@@ -78,13 +80,8 @@ public class Mercury200Handler extends BaseThingHandler {
         String ch = channelUID.getId();
 
         if (command instanceof RefreshType) {
-            switch (ch) {
-                case CH_COUNT1:
-                case CH_COUNT2:
-                case CH_COUNT3:
-                case CH_COUNT4:
-                    addPolledItem(DataItem.COUNTER);
-                    break;
+            if (CH_COUNT_SET.contains(ch)) {
+                addPolledItem(DataItem.COUNTER);
             }
         }
     }
@@ -166,11 +163,13 @@ public class Mercury200Handler extends BaseThingHandler {
 
                 if (ok) {
                     switch (reply.getCommand()) {
-                        case M200Protocol.Command.READ_POWER:
-                            updateState(CH_COUNT1, new DecimalType(reply.getInt(0)));
-                            updateState(CH_COUNT2, new DecimalType(reply.getInt(4)));
-                            updateState(CH_COUNT3, new DecimalType(reply.getInt(8)));
-                            updateState(CH_COUNT4, new DecimalType(reply.getInt(12)));
+                        case M200Protocol.Command.READ_COUNTERS:
+                            // Reply contains four 32-bit BCD values, unit is tenth of wt*h.
+                            // Report it as Kwt*h for simplicity and usability
+                            for (int i = 0; i < CH_COUNT.length; i++) {
+                                double kwt_h = Util.BCDToInt(reply.getInt(i * 4)) * 0.01;
+                                updateState(CH_COUNT[i], new DecimalType(kwt_h));
+                            }
                             break;
                     }
                 } else {
