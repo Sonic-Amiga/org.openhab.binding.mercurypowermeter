@@ -21,7 +21,7 @@ import org.eclipse.smarthome.io.transport.serial.SerialPortEventListener;
 import org.eclipse.smarthome.io.transport.serial.SerialPortIdentifier;
 import org.eclipse.smarthome.io.transport.serial.SerialPortManager;
 import org.eclipse.smarthome.io.transport.serial.UnsupportedCommOperationException;
-import org.openhab.binding.mercurypowermeter.internal.MercuryProtocol.Packet;
+import org.openhab.binding.mercurypowermeter.internal.M200Protocol.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -166,16 +166,16 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
 
         // Reply length depends on the command
         switch (pkt.getCommand()) {
-            case MercuryProtocol.Command.READ_POWER:
+            case M200Protocol.Command.READ_POWER:
                 read_length = 4;
                 break;
-            case MercuryProtocol.Command.READ_COUNTERS:
+            case M200Protocol.Command.READ_COUNTERS:
                 read_length = 16;
                 break;
-            case MercuryProtocol.Command.READ_TARIFFS:
+            case M200Protocol.Command.READ_TARIFFS:
                 read_length = 1;
                 break;
-            case MercuryProtocol.Command.READ_UIP:
+            case M200Protocol.Command.READ_UIP:
                 read_length = 7;
                 break;
             default:

@@ -27,12 +27,12 @@
             </parameter>
         </config-description>
     </bridge-type>
-	<thing-type id="meter">
+	<thing-type id="mercury200">
        <supported-bridge-type-refs>
             <bridge-type-ref id="serial_bus" />
         </supported-bridge-type-refs>
-		<label>Mercury power meter</label>
-		<description>Mercury power meter</description>
+		<label>Mercury 20x</label>
+		<description>Mercury 20x power meter</description>
 		<channels>
 			<channel id="count1" typeId="count">
 			    <label>Counter 1</label>

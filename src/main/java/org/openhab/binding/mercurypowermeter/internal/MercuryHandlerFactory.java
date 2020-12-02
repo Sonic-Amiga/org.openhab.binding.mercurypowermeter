@@ -12,7 +12,7 @@
  */
 package org.openhab.binding.mercurypowermeter.internal;
 
-import static org.openhab.binding.mercurypowermeter.internal.MercuryPowerMeterBindingConstants.*;
+import static org.openhab.binding.mercurypowermeter.internal.MercuryBindingConstants.*;
 
 import java.util.Collections;
 import java.util.Set;
@@ -32,17 +32,17 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * The {@link MercuryPowerMeterHandlerFactory} is responsible for creating things and thing
+ * The {@link MercuryHandlerFactory} is responsible for creating things and thing
  * handlers.
  *
  * @author Pavel Fedin - Initial contribution
  */
 @NonNullByDefault
 @Component(configurationPid = "binding.mercurypowermeter", service = ThingHandlerFactory.class)
-public class MercuryPowerMeterHandlerFactory extends BaseThingHandlerFactory {
+public class MercuryHandlerFactory extends BaseThingHandlerFactory {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
-            .unmodifiableSet(Stream.of(THING_TYPE_SERIAL, THING_TYPE_METER).collect(Collectors.toSet()));;
+            .unmodifiableSet(Stream.of(THING_TYPE_SERIAL, THING_TYPE_M200).collect(Collectors.toSet()));;
 
     private @Nullable SerialPortManager serialPortManager;
 
@@ -55,8 +55,8 @@ public class MercuryPowerMeterHandlerFactory extends BaseThingHandlerFactory {
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
-        if (THING_TYPE_METER.equals(thingTypeUID)) {
-            return new MercuryPowerMeterHandler(thing);
+        if (THING_TYPE_M200.equals(thingTypeUID)) {
+            return new Mercury200Handler(thing);
         } else if (THING_TYPE_SERIAL.equals(thingTypeUID)) {
             SerialPortManager serialManager = serialPortManager;
 

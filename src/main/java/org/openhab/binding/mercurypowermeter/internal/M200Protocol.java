@@ -3,7 +3,7 @@ package org.openhab.binding.mercurypowermeter.internal;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class MercuryProtocol {
+public class M200Protocol {
     public static class Command {
         public static final byte READ_POWER = 0x26;
         public static final byte READ_COUNTERS = 0x27;

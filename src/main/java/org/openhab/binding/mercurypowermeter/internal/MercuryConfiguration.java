@@ -13,11 +13,11 @@
 package org.openhab.binding.mercurypowermeter.internal;
 
 /**
- * The {@link MercuryPowerMeterConfiguration} class contains fields mapping thing configuration parameters.
+ * The {@link MercuryConfiguration} class contains fields mapping thing configuration parameters.
  *
  * @author Pavel Fedin - Initial contribution
  */
-public class MercuryPowerMeterConfiguration {
+public class MercuryConfiguration {
     public int address;
     public int poll_interval;
 }

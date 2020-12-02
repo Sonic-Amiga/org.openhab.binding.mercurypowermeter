@@ -16,18 +16,18 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 
 /**
- * The {@link MercuryPowerMeterBindingConstants} class defines common constants, which are
+ * The {@link MercuryBindingConstants} class defines common constants, which are
  * used across the whole binding.
  *
  * @author Pavel Fedin - Initial contribution
  */
 @NonNullByDefault
-public class MercuryPowerMeterBindingConstants {
+public class MercuryBindingConstants {
 
     private static final String BINDING_ID = "mercurypowermeter";
 
     // List of all Thing Type UIDs
-    public static final ThingTypeUID THING_TYPE_METER = new ThingTypeUID(BINDING_ID, "meter");
+    public static final ThingTypeUID THING_TYPE_M200 = new ThingTypeUID(BINDING_ID, "mercury200");
     public static final ThingTypeUID THING_TYPE_SERIAL = new ThingTypeUID(BINDING_ID, "serial_bus");
 
     // List of all Channel ids

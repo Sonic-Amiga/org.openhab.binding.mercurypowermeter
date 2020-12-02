@@ -12,7 +12,7 @@
  */
 package org.openhab.binding.mercurypowermeter.internal;
 
-import static org.openhab.binding.mercurypowermeter.internal.MercuryPowerMeterBindingConstants.*;
+import static org.openhab.binding.mercurypowermeter.internal.MercuryBindingConstants.*;
 
 import java.io.IOException;
 import java.util.EnumSet;
@@ -34,24 +34,24 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.BridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
-import org.openhab.binding.mercurypowermeter.internal.MercuryProtocol.Packet;
+import org.openhab.binding.mercurypowermeter.internal.M200Protocol.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link MercuryPowerMeterHandler} is responsible for handling commands, which are
+ * The {@link Mercury200Handler} is responsible for handling commands, which are
  * sent to one of the channels.
  *
  * @author Pavel Fedin - Initial contribution
  */
 @NonNullByDefault
-public class MercuryPowerMeterHandler extends BaseThingHandler {
+public class Mercury200Handler extends BaseThingHandler {
 
-    private final Logger logger = LoggerFactory.getLogger(MercuryPowerMeterHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(Mercury200Handler.class);
 
     private static enum DataItem {
 
-        COUNTER(MercuryProtocol.Command.READ_POWER);
+        COUNTER(M200Protocol.Command.READ_POWER);
 
         private byte command;
 
@@ -64,12 +64,12 @@ public class MercuryPowerMeterHandler extends BaseThingHandler {
         }
     }
 
-    private MercuryPowerMeterConfiguration config = new MercuryPowerMeterConfiguration();
+    private MercuryConfiguration config = new MercuryConfiguration();
     private @Nullable ScheduledFuture<?> pollFuture;
     private @Nullable SerialBusHandler bus;
     private Set<DataItem> pollSet = EnumSet.noneOf(DataItem.class);
 
-    public MercuryPowerMeterHandler(Thing thing) {
+    public Mercury200Handler(Thing thing) {
         super(thing);
     }
 
@@ -106,7 +106,7 @@ public class MercuryPowerMeterHandler extends BaseThingHandler {
         }
 
         bus = (SerialBusHandler) handler;
-        config = getConfigAs(MercuryPowerMeterConfiguration.class);
+        config = getConfigAs(MercuryConfiguration.class);
 
         updateStatus(ThingStatus.UNKNOWN);
         logger.trace("Successfully initialized, starting poll");
@@ -166,7 +166,7 @@ public class MercuryPowerMeterHandler extends BaseThingHandler {
 
                 if (ok) {
                     switch (reply.getCommand()) {
-                        case MercuryProtocol.Command.READ_POWER:
+                        case M200Protocol.Command.READ_POWER:
                             updateState(CH_COUNT1, new DecimalType(reply.getInt(0)));
                             updateState(CH_COUNT2, new DecimalType(reply.getInt(4)));
                             updateState(CH_COUNT3, new DecimalType(reply.getInt(8)));
