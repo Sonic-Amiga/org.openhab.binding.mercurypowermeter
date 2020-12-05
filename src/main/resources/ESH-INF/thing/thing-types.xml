@@ -34,22 +34,28 @@
 		<label>Mercury 20x</label>
 		<description>Mercury 20x power meter</description>
 		<channels>
-			<channel id="count1" typeId="count">
-			    <label>Counter 1</label>
+			<channel id="energy1" typeId="energy">
+			    <label>Energy counter 1</label>
 			    <description>Energy consumed for tariff #1</description>
 			</channel>
-            <channel id="count2" typeId="count">
-                <label>Counter 2</label>
+            <channel id="energy2" typeId="energy">
+                <label>Energy counter 2</label>
                 <description>Energy consumed for tariff #2</description>
             </channel>
-            <channel id="count3" typeId="count">
-                <label>Counter 3</label>
+            <channel id="energy3" typeId="energy">
+                <label>Energy counter 3</label>
                 <description>Energy consumed for tariff #3</description>
             </channel>
-            <channel id="count4" typeId="count">
-                <label>Counter 4</label>
+            <channel id="energy4" typeId="energy">
+                <label>Energy counter 4</label>
                 <description>Energy consumed for tariff #4</description>
             </channel>
+            <channel id="battery" typeId="battery" />
+            <channel id="num_tariffs" typeId="num_tariffs" />
+            <channel id="tariff" typeId="tariff" />
+            <channel id="voltage" typeId="voltage" />
+            <channel id="current" typeId="current" />
+            <channel id="power" typeId="power" />
 		</channels>
 		<config-description>
             <parameter name="address" type="integer">
@@ -65,10 +71,63 @@
 		</config-description>
 	</thing-type>
 
-	<channel-type id="count">
+	<channel-type id="energy">
 		<item-type>Number</item-type>
 		<label>Counter</label>
 		<state readOnly="true" pattern="%.2f Kwt*H" />
 	</channel-type>
-
+    <channel-type id="battery">
+        <item-type>Number</item-type>
+        <label>Battery voltage</label>
+        <description>Built-in lithium battery voltage</description>
+        <state readOnly="true" pattern="%.2f V" />
+    </channel-type>
+    <channel-type id="num_tariffs">
+        <item-type>Number</item-type>
+        <label>Number of active tariffs</label>
+        <description>Number of tariffs being used</description>
+        <state readOnly="true" />
+    </channel-type>
+    <channel-type id="tariff">
+        <item-type>Number</item-type>
+        <label>Current tariff</label>
+        <description>Number of currently active tariff</description>
+        <state readOnly="true" />
+    </channel-type>
+    <channel-type id="voltage">
+        <item-type>Number</item-type>
+        <label>Line voltage</label>
+        <description>Current AC line voltage</description>
+        <state readOnly="true" pattern="%.2f V" />
+    </channel-type>
+    <channel-type id="current">
+        <item-type>Number</item-type>
+        <label>Line current</label>
+        <description>Current AC line current</description>
+        <state readOnly="true" pattern="%.2f A" />
+    </channel-type>
+    <channel-type id="power">
+        <item-type>Number</item-type>
+        <label>Line power</label>
+        <description>Current AC line power</description>
+        <state readOnly="true" pattern="%.2f W" />
+    </channel-type>
+    <channel-type id="frequency">
+        <item-type>Number</item-type>
+        <label>Line frequency</label>
+        <description>Current AC line frequency</description>
+        <state readOnly="true" pattern="%.2f Hz" />
+    </channel-type>
+    <channel-type id="leakage">
+        <item-type>Switch</item-type>
+        <label>Current leakage</label>
+        <description>Inequality of currents detected</description>
+        <state readOnly="true" />
+    </channel-type>
+    <channel-type id="reverse">
+        <item-type>Switch</item-type>
+        <label>Reverse feed</label>
+        <description>Reverse energy detected</description>
+        <state readOnly="true" />
+    </channel-type>
 </thing:thing-descriptions>

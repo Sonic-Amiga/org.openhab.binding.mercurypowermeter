@@ -19,12 +19,16 @@ public class M200Protocol {
     public static class Command {
         public static final byte READ_POWER = 0x26;
         public static final byte READ_COUNTERS = 0x27;
+        public static final byte READ_BATTERY = 0x29;
         public static final byte READ_TARIFFS = 0x2E;
+        public static final byte READ_TARIFF = 0x60;
         public static final byte READ_UIP = 0x63;
+        public static final byte READ_LINE_PARAMS = (byte) 0x81;
     }
 
     public static class Packet {
-        public static final int MIN_LENGTH = 7;
+        private static final int HEADER_LENGTH = 5;
+        public static final int MIN_LENGTH = HEADER_LENGTH + 2;
 
         private ByteBuffer m_Buffer;
         private int m_DataLength;
@@ -38,7 +42,7 @@ public class M200Protocol {
         Packet(int address, byte command) {
             m_Buffer = ByteBuffer.allocate(MIN_LENGTH);
             m_Buffer.order(ByteOrder.BIG_ENDIAN);
-            m_DataLength = MIN_LENGTH - 2;
+            m_DataLength = HEADER_LENGTH;
 
             m_Buffer.putInt(address);
             m_Buffer.put(command);
@@ -57,12 +61,27 @@ public class M200Protocol {
             return m_Buffer.getInt(0);
         }
 
-        public int getCommand() {
+        public byte getCommand() {
             return m_Buffer.get(4);
         }
 
+        public byte getByte(int offset) {
+            return m_Buffer.get(HEADER_LENGTH + offset);
+        }
+
+        public short getShort(int offset) {
+            return m_Buffer.getShort(HEADER_LENGTH + offset);
+        }
+
+        public int getTriple(int offset) {
+            int v1 = getShort(offset);
+            int v2 = getByte(offset + 2);
+
+            return v1 | (v2 << 16);
+        }
+
         public int getInt(int offset) {
-            return m_Buffer.getInt(5 + offset);
+            return m_Buffer.getInt(HEADER_LENGTH + offset);
         }
 
         // Mercury uses modbus variant of CRC16

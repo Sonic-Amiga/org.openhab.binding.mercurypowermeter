@@ -23,7 +23,6 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
  */
 @NonNullByDefault
 public class MercuryBindingConstants {
-
     private static final String BINDING_ID = "mercurypowermeter";
 
     // List of all Thing Type UIDs
@@ -31,5 +30,15 @@ public class MercuryBindingConstants {
     public static final ThingTypeUID THING_TYPE_SERIAL = new ThingTypeUID(BINDING_ID, "serial_bus");
 
     // List of all Channel ids
-    public static final String CH_COUNT[] = { "count1", "count2", "count3", "count4" };
+    public static final String CH_ENERGY1 = "energy1";
+    public static final String CH_ENERGY2 = "energy2";
+    public static final String CH_ENERGY3 = "energy3";
+    public static final String CH_ENERGY4 = "energy4";
+    public static final String CH_ENERGY[] = { CH_ENERGY1, CH_ENERGY2, CH_ENERGY3, CH_ENERGY4 };
+    public static final String CH_BATTERY = "battery";
+    public static final String CH_NUM_TARIFFS = "num_tariffs";
+    public static final String CH_TARIFF = "tariff";
+    public static final String CH_U = "voltage";
+    public static final String CH_I = "current";
+    public static final String CH_P = "power";
 }

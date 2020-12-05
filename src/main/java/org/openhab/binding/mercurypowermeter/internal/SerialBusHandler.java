@@ -184,15 +184,26 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
             case M200Protocol.Command.READ_COUNTERS:
                 read_length = 16;
                 break;
+            case M200Protocol.Command.READ_BATTERY:
+                read_length = 2;
+                break;
             case M200Protocol.Command.READ_TARIFFS:
+                read_length = 1;
+                break;
+            case M200Protocol.Command.READ_TARIFF:
                 read_length = 1;
                 break;
             case M200Protocol.Command.READ_UIP:
                 read_length = 7;
                 break;
+            case M200Protocol.Command.READ_LINE_PARAMS:
+                read_length = 10;
+                break;
             default:
                 throw new IllegalStateException("Unknown command code");
         }
+
+        logger.trace("Sending command {}; reply data length = {}", Byte.toUnsignedInt(pkt.getCommand()), read_length);
 
         read_length += Packet.MIN_LENGTH;
 
@@ -207,6 +218,7 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
             if (n < 0) {
                 throw new IOException("EOF from serial port");
             } else if (n == 0) {
+                logger.trace("Reply timeout");
                 throw new IOException("Serial read timeout");
             }
 
