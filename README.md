@@ -1,56 +1,50 @@
 # MercuryPowerMeter Binding
 
-_Give some details about what this binding is meant for - a protocol, system, specific device._
-
-_If possible, provide some resources like pictures, a YouTube video, etc. to give an impression of what can be done with this binding. You can place such resources into a `doc` folder next to this README.md._
+This binding supports Mercury M20x line of smart power meters, produced by Russian company named Incotex Electronics Group (https://www.incotexcom.ru/catalogue)
 
 ## Supported Things
 
-_Please describe the different supported things / devices within this section._
-_Which different types are supported, which models were tested etc.?_
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/ESH-INF/thing``` of your binding._
+- Serial bus (Mercury-221 or any other serial line adapter)
+- M200 counter - Mercury-200 single-phase AC meter. All single-phase meters, made by this company, should be compatible.
+
+Note that three-phase counters from the same vendor have different, incompatible protocol, and therefore are not
+currently supported by this binding
 
 ## Discovery
 
-_Describe the available auto-discovery features here. Mention for what it works and what needs to be kept in mind when using it._
-
-## Binding Configuration
-
-_If your binding requires or supports general configuration settings, please create a folder ```cfg``` and place the configuration file ```<bindingId>.cfg``` inside it. In this section, you should link to this file and provide some information about the options. The file could e.g. look like:_
-
-```
-# Configuration for the Philips Hue Binding
-#
-# Default secret key for the pairing of the Philips Hue Bridge.
-# It has to be between 10-40 (alphanumeric) characters
-# This may be changed by the user for security reasons.
-secret=openHABSecret
-```
-
-_Note that it is planned to generate some part of this based on the information that is available within ```src/main/resources/ESH-INF/binding``` of your binding._
-
-_If your binding does not offer any generic configurations, you can remove this section completely._
+Due to nature of serial bus being used, no automatic discovery is possible.
 
 ## Thing Configuration
 
-_Describe what is needed to manually configure a thing, either through the (Paper) UI or via a thing-file. This should be mainly about its mandatory and optional configuration parameters. A short example entry for a thing file can help!_
+### Mercury Serial Bus Bridge (id "serial_bus")
 
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/ESH-INF/thing``` of your binding._
+| Parameter | Meaning                                                 |
+|-----------|---------------------------------------------------------|
+| port      | Serial port name to use                                 |
+| baud      | Baud rate to use for the communication. Default is 9600 |
+
+### Mercury 20x Thing (id "mercury200")
+
+| Parameter     | Meaning                                                 |
+|---------------|---------------------------------------------------------|
+| address       | Address of the meter on the serial bus. For Mercury 200 defaults to last 6 digits of the serial number; for other models please see the respective manual |
+| poll_interval | Polling interval in seconds                             |
 
 ## Channels
 
-_Here you should provide information about available channel types, what their meaning is and how they can be used._
-
-_Note that it is planned to generate some part of this based on the XML files within ```src/main/resources/ESH-INF/thing``` of your binding._
-
-| channel  | type   | description                  |
-|----------|--------|------------------------------|
-| control  | Switch | This is the control channel  |
+| channel     | type   | description                                   |
+|-------------|--------|-----------------------------------------------|
+| energy1     | Number | Total energy accounted for Tariff #1, Kwt*H   |
+| energy2     | Number | Total energy accounted for Tariff #2, Kwt*H   |
+| energy3     | Number | Total energy accounted for Tariff #3, Kwt*H   |
+| energy4     | Number | Total energy accounted for Tariff #4, Kwt*H   |
+| battery     | Number | Voltage of built-in lithium backup battery, V |
+| num_tariffs | Number | Number of active tariffs (1 - 4)              |
+| tariff      | Number | Number of tariff currently being used (1 - 4) |
+| voltage     | Number | AC line voltage, V                            |
+| current     | Number | AC line current, A                            |
+| power       | Number | AC line power (current), W                    |
 
 ## Full Example
 
 _Provide a full usage example based on textual configuration files (*.things, *.items, *.sitemap)._
-
-## Any custom content here!
-
-_Feel free to add additional sections for whatever you think should also be mentioned about your binding!_
