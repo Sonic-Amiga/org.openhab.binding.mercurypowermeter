@@ -12,7 +12,6 @@
  */
 package org.openhab.binding.mercurypowermeter.internal;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,7 +23,6 @@ import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.io.transport.serial.PortInUseException;
 import org.eclipse.smarthome.io.transport.serial.SerialPort;
@@ -33,17 +31,14 @@ import org.eclipse.smarthome.io.transport.serial.SerialPortEventListener;
 import org.eclipse.smarthome.io.transport.serial.SerialPortIdentifier;
 import org.eclipse.smarthome.io.transport.serial.SerialPortManager;
 import org.eclipse.smarthome.io.transport.serial.UnsupportedCommOperationException;
-import org.openhab.binding.mercurypowermeter.internal.M200Protocol.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @NonNullByDefault
-public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEventListener {
+public class SerialBusHandler extends BusHandler implements SerialPortEventListener {
     private final Logger logger = LoggerFactory.getLogger(SerialBusHandler.class);
     private SerialPortManager serialPortManager;
     private SerialBusConfiguration config = new SerialBusConfiguration();
-    private @Nullable InputStream dataIn;
-    private @Nullable OutputStream dataOut;
     private @Nullable SerialPort serialPort;
 
     public SerialBusHandler(Bridge bridge, SerialPortManager portManager) {
@@ -129,16 +124,6 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
         updateStatus(ThingStatus.ONLINE);
     }
 
-    private void safeClose(@Nullable Closeable stream) {
-        if (stream != null) {
-            try {
-                stream.close();
-            } catch (IOException e) {
-                logger.warn("Error closing I/O stream: {}", e.getMessage());
-            }
-        }
-    }
-
     @Override
     public void dispose() {
         SerialPort port = serialPort;
@@ -148,12 +133,10 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
         }
 
         port.removeEventListener();
-        safeClose(dataOut);
-        safeClose(dataIn);
-        port.close();
 
-        dataOut = null;
-        dataIn = null;
+        super.dispose();
+
+        port.close();
         serialPort = null;
     }
 
@@ -164,68 +147,5 @@ public class SerialBusHandler extends BaseBridgeHandler implements SerialPortEve
             Thread.sleep(Long.MAX_VALUE);
         } catch (InterruptedException e) {
         }
-    }
-
-    public synchronized @Nullable Packet doPacket(Packet pkt) throws IOException {
-        OutputStream dataOut = this.dataOut;
-        InputStream dataIn = this.dataIn;
-
-        if (dataOut == null || dataIn == null) {
-            return null;
-        }
-
-        int read_length;
-
-        // Reply length depends on the command
-        switch (pkt.getCommand()) {
-            case M200Protocol.Command.READ_POWER:
-                read_length = 4;
-                break;
-            case M200Protocol.Command.READ_COUNTERS:
-                read_length = 16;
-                break;
-            case M200Protocol.Command.READ_BATTERY:
-                read_length = 2;
-                break;
-            case M200Protocol.Command.READ_TARIFFS:
-                read_length = 1;
-                break;
-            case M200Protocol.Command.READ_TARIFF:
-                read_length = 1;
-                break;
-            case M200Protocol.Command.READ_UIP:
-                read_length = 7;
-                break;
-            case M200Protocol.Command.READ_LINE_PARAMS:
-                read_length = 10;
-                break;
-            default:
-                throw new IllegalStateException("Unknown command code");
-        }
-
-        logger.trace("Sending command {}; reply data length = {}", Byte.toUnsignedInt(pkt.getCommand()), read_length);
-
-        read_length += Packet.MIN_LENGTH;
-
-        dataOut.write(pkt.getBuffer());
-
-        int read_offset = 0;
-        byte[] in_buffer = new byte[read_length];
-
-        while (read_length > 0) {
-            int n = dataIn.read(in_buffer, read_offset, read_length);
-
-            if (n < 0) {
-                throw new IOException("EOF from serial port");
-            } else if (n == 0) {
-                logger.trace("Reply timeout");
-                throw new IOException("Serial read timeout");
-            }
-
-            read_offset += n;
-            read_length -= n;
-        }
-
-        return new Packet(in_buffer);
     }
 }

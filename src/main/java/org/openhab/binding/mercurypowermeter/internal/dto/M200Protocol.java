@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.mercurypowermeter.internal;
+package org.openhab.binding.mercurypowermeter.internal.dto;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -39,7 +39,7 @@ public class M200Protocol {
             m_DataLength = data.length - 2;
         }
 
-        Packet(int address, byte command) {
+        public Packet(int address, byte command) {
             m_Buffer = ByteBuffer.allocate(MIN_LENGTH);
             m_Buffer.order(ByteOrder.BIG_ENDIAN);
             m_DataLength = HEADER_LENGTH;

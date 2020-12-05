@@ -34,7 +34,8 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.BridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
-import org.openhab.binding.mercurypowermeter.internal.M200Protocol.Packet;
+import org.openhab.binding.mercurypowermeter.internal.dto.M200Protocol;
+import org.openhab.binding.mercurypowermeter.internal.dto.M200Protocol.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,7 +185,7 @@ public class Mercury200Handler extends BaseThingHandler {
                     switch (reply.getCommand()) {
                         case M200Protocol.Command.READ_COUNTERS:
                             // Reply contains four 32-bit BCD values, unit is tenth of wt*h.
-                            // Report it as Kwt*h for simplicity and usability
+                            // Report it as KWt*H for simplicity and usability
                             for (int i = 0; i < CH_ENERGY.length; i++) {
                                 double kwt_h = Util.BCDToInt(reply.getInt(i * 4)) * 0.01;
                                 updateState(CH_ENERGY[i], new DecimalType(kwt_h));
