@@ -56,6 +56,7 @@
             <channel id="voltage" typeId="voltage" />
             <channel id="current" typeId="current" />
             <channel id="power" typeId="power" />
+            <channel id="datetime" typeId="datetime" />
 		</channels>
 		<config-description>
             <parameter name="address" type="integer">
@@ -128,6 +129,12 @@
         <item-type>Switch</item-type>
         <label>Reverse feed</label>
         <description>Reverse energy detected</description>
+        <state readOnly="true" />
+    </channel-type>
+    <channel-type id="datetime">
+        <item-type>DateTime</item-type>
+        <label>Current time</label>
+        <description>Date and time from meter's internal clock</description>
         <state readOnly="true" />
     </channel-type>
 </thing:thing-descriptions>

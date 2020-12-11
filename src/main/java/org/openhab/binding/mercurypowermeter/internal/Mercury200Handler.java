@@ -24,6 +24,7 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.smarthome.core.library.types.DateTimeType;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
@@ -50,6 +51,7 @@ public class Mercury200Handler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(Mercury200Handler.class);
 
     private static enum DataItem {
+        DATETIME(M200Protocol.Command.READ_TIME),
         COUNTER(M200Protocol.Command.READ_COUNTERS),
         BATTERY(M200Protocol.Command.READ_BATTERY),
         TARIFFS(M200Protocol.Command.READ_TARIFFS),
@@ -82,6 +84,9 @@ public class Mercury200Handler extends BaseThingHandler {
 
         if (command instanceof RefreshType) {
             switch (ch) {
+                case CH_DATETIME:
+                    addPolledItem(DataItem.DATETIME);
+                    break;
                 case CH_ENERGY1:
                 case CH_ENERGY2:
                 case CH_ENERGY3:
@@ -183,6 +188,9 @@ public class Mercury200Handler extends BaseThingHandler {
 
                 if (ok) {
                     switch (reply.getCommand()) {
+                        case M200Protocol.Command.READ_TIME:
+                            updateState(CH_DATETIME, new DateTimeType(reply.getDateTime()));
+                            break;
                         case M200Protocol.Command.READ_COUNTERS:
                             // Reply contains four 32-bit BCD values, unit is tenth of wt*h.
                             // Report it as KWt*H for simplicity and usability

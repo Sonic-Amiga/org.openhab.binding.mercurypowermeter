@@ -14,9 +14,14 @@ package org.openhab.binding.mercurypowermeter.internal.dto;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
+import org.openhab.binding.mercurypowermeter.internal.Util;
 
 public class M200Protocol {
     public static class Command {
+        public static final byte READ_TIME = 0x21;
         public static final byte READ_POWER = 0x26;
         public static final byte READ_COUNTERS = 0x27;
         public static final byte READ_BATTERY = 0x29;
@@ -82,6 +87,18 @@ public class M200Protocol {
 
         public int getInt(int offset) {
             return m_Buffer.getInt(HEADER_LENGTH + offset);
+        }
+
+        public ZonedDateTime getDateTime() {
+            // 0th byte is day of week, ignore it
+            int hh = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 1));
+            int mm = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 2));
+            int ss = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 3));
+            int dd = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 4));
+            int mon = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 5)) - 1;
+            int yy = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 6)) + 2000;
+
+            return ZonedDateTime.of(yy, mon, dd, hh, mm, ss, 0, ZoneId.systemDefault());
         }
 
         // Mercury uses modbus variant of CRC16

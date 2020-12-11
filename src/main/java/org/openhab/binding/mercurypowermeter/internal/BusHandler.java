@@ -66,6 +66,9 @@ public abstract class BusHandler extends BaseBridgeHandler {
 
         // Reply length depends on the command
         switch (pkt.getCommand()) {
+            case M200Protocol.Command.READ_TIME:
+                read_length = 7;
+                break;
             case M200Protocol.Command.READ_POWER:
                 read_length = 4;
                 break;
