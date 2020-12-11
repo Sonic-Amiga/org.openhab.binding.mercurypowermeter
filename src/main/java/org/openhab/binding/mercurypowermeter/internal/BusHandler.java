@@ -16,6 +16,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -61,7 +64,7 @@ public abstract class BusHandler extends BaseBridgeHandler {
         dataIn = null;
     }
 
-    public synchronized Packet doPacket(Packet pkt) throws IOException, BridgeOfflineException {
+    public synchronized @Nullable Packet doPacket(Packet pkt) throws IOException, BridgeOfflineException {
         OutputStream dataOut = this.dataOut;
         InputStream dataIn = this.dataIn;
 
@@ -124,6 +127,27 @@ public abstract class BusHandler extends BaseBridgeHandler {
             readLength -= n;
         }
 
-        return new Packet(readBuffer);
+        Packet reply = new Packet(readBuffer);
+
+        try {
+            TimeUnit.MILLISECONDS.sleep(getDelay());
+        } catch (InterruptedException e) {
+        }
+
+        if (reply.isValid()) {
+            return reply;
+        } else {
+            logger.warn("Invalid reply received: {}", DatatypeConverter.printHexBinary(reply.getBuffer()));
+            return null;
+        }
+    }
+
+    protected int getDelay() {
+        // The meter doesn't reply if a second command is sent immediately after
+        // the first reply.
+        // According to the documentation, end of frame is considered when there's no
+        // transmission within time, enough to transfer 5 - 6 bytes. Here we don't know
+        // our baud rate, so using the largest delay, calculated for 600 bps
+        return 100;
     }
 }

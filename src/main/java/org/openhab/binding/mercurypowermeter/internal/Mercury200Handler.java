@@ -18,8 +18,6 @@ import java.io.IOException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import javax.xml.bind.DatatypeConverter;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.DateTimeType;
@@ -190,23 +188,6 @@ public class Mercury200Handler extends BaseThingHandler {
         }
 
         Packet pkt = new Packet(config.address, command);
-        Packet reply = bus.doPacket(pkt);
-
-        try {
-            // The meter doesn't reply if a second command is sent immediately after
-            // the first reply.
-            // According to the documentation, end of frame is considered when there's no
-            // transmission within time, enough to transfer 5 - 6 bytes. For the lowest speed,
-            // 600 bps, this would be 0.1 seconds, just use this delay.
-            TimeUnit.MILLISECONDS.sleep(100);
-        } catch (InterruptedException e) {
-        }
-
-        if (reply.isValid()) {
-            return reply;
-        } else {
-            logger.warn("Invalid reply received: {}", DatatypeConverter.printHexBinary(reply.getBuffer()));
-            return null;
-        }
+        return bus.doPacket(pkt);
     }
 }

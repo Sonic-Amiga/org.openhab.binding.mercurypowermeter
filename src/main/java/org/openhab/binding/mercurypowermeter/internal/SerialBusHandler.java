@@ -148,4 +148,13 @@ public class SerialBusHandler extends BusHandler implements SerialPortEventListe
         } catch (InterruptedException e) {
         }
     }
+
+    @Override
+    protected int getDelay() {
+        // According to the documentation, end of frame is considered when there's no
+        // transmission within time, enough to transfer 5 - 6 bytes.
+        // "+20" has been chosen experimentally, without this addendum i still got
+        // communication timeouts
+        return (1000 / (config.baud / 60)) + 20;
+    }
 }
