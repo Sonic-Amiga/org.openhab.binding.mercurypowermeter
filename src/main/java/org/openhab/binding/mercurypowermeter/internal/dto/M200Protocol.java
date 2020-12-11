@@ -17,8 +17,16 @@ import java.nio.ByteOrder;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.mercurypowermeter.internal.Util;
 
+/**
+ * Mercury 20x binary protocol
+ *
+ * @author Pavel Fedin - Initial contribution
+ *
+ */
+@NonNullByDefault
 public class M200Protocol {
     public static class Command {
         public static final byte READ_TIME = 0x21;
@@ -35,47 +43,47 @@ public class M200Protocol {
         private static final int HEADER_LENGTH = 5;
         public static final int MIN_LENGTH = HEADER_LENGTH + 2;
 
-        private ByteBuffer m_Buffer;
-        private int m_DataLength;
+        private ByteBuffer dataBuffer;
+        private int dataLength;
 
         public Packet(byte[] data) {
-            m_Buffer = ByteBuffer.wrap(data);
-            m_Buffer.order(ByteOrder.BIG_ENDIAN);
-            m_DataLength = data.length - 2;
+            dataBuffer = ByteBuffer.wrap(data);
+            dataBuffer.order(ByteOrder.BIG_ENDIAN);
+            dataLength = data.length - 2;
         }
 
         public Packet(int address, byte command) {
-            m_Buffer = ByteBuffer.allocate(MIN_LENGTH);
-            m_Buffer.order(ByteOrder.BIG_ENDIAN);
-            m_DataLength = HEADER_LENGTH;
+            dataBuffer = ByteBuffer.allocate(MIN_LENGTH);
+            dataBuffer.order(ByteOrder.BIG_ENDIAN);
+            dataLength = HEADER_LENGTH;
 
-            m_Buffer.putInt(address);
-            m_Buffer.put(command);
-            m_Buffer.putShort(crc16(m_DataLength));
+            dataBuffer.putInt(address);
+            dataBuffer.put(command);
+            dataBuffer.putShort(crc16(dataLength));
         }
 
         public byte[] getBuffer() {
-            return m_Buffer.array();
+            return dataBuffer.array();
         }
 
         public boolean isValid() {
-            return crc16(m_DataLength) == m_Buffer.getShort(m_DataLength);
+            return crc16(dataLength) == dataBuffer.getShort(dataLength);
         }
 
         public int getAddress() {
-            return m_Buffer.getInt(0);
+            return dataBuffer.getInt(0);
         }
 
         public byte getCommand() {
-            return m_Buffer.get(4);
+            return dataBuffer.get(4);
         }
 
         public byte getByte(int offset) {
-            return m_Buffer.get(HEADER_LENGTH + offset);
+            return dataBuffer.get(HEADER_LENGTH + offset);
         }
 
         public short getShort(int offset) {
-            return m_Buffer.getShort(HEADER_LENGTH + offset);
+            return dataBuffer.getShort(HEADER_LENGTH + offset);
         }
 
         public int getTriple(int offset) {
@@ -86,17 +94,17 @@ public class M200Protocol {
         }
 
         public int getInt(int offset) {
-            return m_Buffer.getInt(HEADER_LENGTH + offset);
+            return dataBuffer.getInt(HEADER_LENGTH + offset);
         }
 
         public ZonedDateTime getDateTime() {
             // 0th byte is day of week, ignore it
-            int hh = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 1));
-            int mm = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 2));
-            int ss = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 3));
-            int dd = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 4));
-            int mon = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 5)) - 1;
-            int yy = Util.BCDToInt(m_Buffer.get(HEADER_LENGTH + 6)) + 2000;
+            int hh = Util.BCDToInt(dataBuffer.get(HEADER_LENGTH + 1));
+            int mm = Util.BCDToInt(dataBuffer.get(HEADER_LENGTH + 2));
+            int ss = Util.BCDToInt(dataBuffer.get(HEADER_LENGTH + 3));
+            int dd = Util.BCDToInt(dataBuffer.get(HEADER_LENGTH + 4));
+            int mon = Util.BCDToInt(dataBuffer.get(HEADER_LENGTH + 5)) - 1;
+            int yy = Util.BCDToInt(dataBuffer.get(HEADER_LENGTH + 6)) + 2000;
 
             return ZonedDateTime.of(yy, mon, dd, hh, mm, ss, 0, ZoneId.systemDefault());
         }
@@ -106,7 +114,7 @@ public class M200Protocol {
         private short crc16(int length) {
             int crc = 0xFFFF;
             for (int i = 0; i < length; i++) {
-                crc = crc ^ Byte.toUnsignedInt(m_Buffer.get(i));
+                crc = crc ^ Byte.toUnsignedInt(dataBuffer.get(i));
                 for (int j = 0; j < 8; j++) {
                     int mask = ((crc & 0x1) != 0) ? 0xA001 : 0x0000;
                     crc = ((crc >> 1) & 0x7FFF) ^ mask;

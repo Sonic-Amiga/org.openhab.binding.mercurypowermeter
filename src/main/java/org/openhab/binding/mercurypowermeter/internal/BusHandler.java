@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
@@ -25,6 +26,12 @@ import org.openhab.binding.mercurypowermeter.internal.dto.M200Protocol.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The {@link BusHandler} is a handy base class, implementing data communication with Herzborg devices.
+ *
+ * @author Pavel Fedin - Initial contribution
+ */
+@NonNullByDefault
 public abstract class BusHandler extends BaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(BusHandler.class);
 
@@ -62,49 +69,49 @@ public abstract class BusHandler extends BaseBridgeHandler {
             return null;
         }
 
-        int read_length;
+        int readLength;
 
         // Reply length depends on the command
         switch (pkt.getCommand()) {
             case M200Protocol.Command.READ_TIME:
-                read_length = 7;
+                readLength = 7;
                 break;
             case M200Protocol.Command.READ_POWER:
-                read_length = 4;
+                readLength = 4;
                 break;
             case M200Protocol.Command.READ_COUNTERS:
-                read_length = 16;
+                readLength = 16;
                 break;
             case M200Protocol.Command.READ_BATTERY:
-                read_length = 2;
+                readLength = 2;
                 break;
             case M200Protocol.Command.READ_TARIFFS:
-                read_length = 1;
+                readLength = 1;
                 break;
             case M200Protocol.Command.READ_TARIFF:
-                read_length = 1;
+                readLength = 1;
                 break;
             case M200Protocol.Command.READ_UIP:
-                read_length = 7;
+                readLength = 7;
                 break;
             case M200Protocol.Command.READ_LINE_PARAMS:
-                read_length = 10;
+                readLength = 10;
                 break;
             default:
                 throw new IllegalStateException("Unknown command code");
         }
 
-        logger.trace("Sending command {}; reply data length = {}", Byte.toUnsignedInt(pkt.getCommand()), read_length);
+        logger.trace("Sending command {}; reply data length = {}", Byte.toUnsignedInt(pkt.getCommand()), readLength);
 
-        read_length += Packet.MIN_LENGTH;
+        readLength += Packet.MIN_LENGTH;
 
         dataOut.write(pkt.getBuffer());
 
-        int read_offset = 0;
-        byte[] in_buffer = new byte[read_length];
+        int readOffset = 0;
+        byte[] readBuffer = new byte[readLength];
 
-        while (read_length > 0) {
-            int n = dataIn.read(in_buffer, read_offset, read_length);
+        while (readLength > 0) {
+            int n = dataIn.read(readBuffer, readOffset, readLength);
 
             if (n < 0) {
                 throw new IOException("EOF from serial port");
@@ -113,10 +120,10 @@ public abstract class BusHandler extends BaseBridgeHandler {
                 throw new IOException("Serial read timeout");
             }
 
-            read_offset += n;
-            read_length -= n;
+            readOffset += n;
+            readLength -= n;
         }
 
-        return new Packet(in_buffer);
+        return new Packet(readBuffer);
     }
 }
