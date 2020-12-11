@@ -61,12 +61,12 @@ public abstract class BusHandler extends BaseBridgeHandler {
         dataIn = null;
     }
 
-    public synchronized @Nullable Packet doPacket(Packet pkt) throws IOException {
+    public synchronized Packet doPacket(Packet pkt) throws IOException, BridgeOfflineException {
         OutputStream dataOut = this.dataOut;
         InputStream dataIn = this.dataIn;
 
         if (dataOut == null || dataIn == null) {
-            return null;
+            throw new BridgeOfflineException();
         }
 
         int readLength;
