@@ -129,6 +129,8 @@ public abstract class BusHandler extends BaseBridgeHandler {
 
         Packet reply = new Packet(readBuffer);
 
+        // The meter doesn't reply if a second command is sent immediately after
+        // the first reply, so we need a delay
         try {
             TimeUnit.MILLISECONDS.sleep(getDelay());
         } catch (InterruptedException e) {
@@ -143,8 +145,6 @@ public abstract class BusHandler extends BaseBridgeHandler {
     }
 
     protected int getDelay() {
-        // The meter doesn't reply if a second command is sent immediately after
-        // the first reply.
         // According to the documentation, end of frame is considered when there's no
         // transmission within time, enough to transfer 5 - 6 bytes. Here we don't know
         // our baud rate, so using the largest delay, calculated for 600 bps
