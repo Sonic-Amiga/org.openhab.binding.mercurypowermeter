@@ -113,24 +113,6 @@
         <description>Current AC line power</description>
         <state readOnly="true" pattern="%.2f W" />
     </channel-type>
-    <channel-type id="frequency">
-        <item-type>Number</item-type>
-        <label>Line frequency</label>
-        <description>Current AC line frequency</description>
-        <state readOnly="true" pattern="%.2f Hz" />
-    </channel-type>
-    <channel-type id="leakage">
-        <item-type>Switch</item-type>
-        <label>Current leakage</label>
-        <description>Inequality of currents detected</description>
-        <state readOnly="true" />
-    </channel-type>
-    <channel-type id="reverse">
-        <item-type>Switch</item-type>
-        <label>Reverse feed</label>
-        <description>Reverse energy detected</description>
-        <state readOnly="true" />
-    </channel-type>
     <channel-type id="datetime">
         <item-type>DateTime</item-type>
         <label>Current time</label>
