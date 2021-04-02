@@ -22,6 +22,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.smarthome.core.library.types.DateTimeType;
 import org.eclipse.smarthome.core.library.types.DecimalType;
+import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -114,8 +115,7 @@ public class Mercury200Handler extends BaseThingHandler {
                     // Reply contains four 32-bit BCD values, unit is tenth of Wt*H.
                     // Report it as KWt*H for simplicity and usability
                     for (int i = 0; i < CH_ENERGY.length; i++) {
-                        double kwt_h = Util.BCDToInt(reply.getInt(i * 4)) * 0.01;
-                        updateState(CH_ENERGY[i], new DecimalType(kwt_h));
+                        reportBCD(CH_ENERGY[i], reply.getInt(i * 4), 0.01);
                     }
                 } else {
                     ok = false;
@@ -126,8 +126,7 @@ public class Mercury200Handler extends BaseThingHandler {
 
                 if (reply != null) {
                     // Reply contains 16-bit BCD value in format VV.VV
-                    double volts = Util.BCDToInt(reply.getShort(0)) * 0.01;
-                    updateState(CH_BATTERY, new DecimalType(volts));
+                    reportBCD(CH_BATTERY, reply.getShort(0), 0.01);
                 } else {
                     ok = false;
                 }
@@ -142,12 +141,28 @@ public class Mercury200Handler extends BaseThingHandler {
                     ok = false;
                 }
             }
-            if (isLinked(CH_TARIFF)) {
+            if (isLinked(CH_FREQUENCY) || isLinked(CH_LEAKAGE) || isLinked(CH_REVERSE)) {
+                Packet reply = doPacket(M200Protocol.Command.READ_LINE_PARAMS);
+
+                if (reply != null) {
+                    // 2 bytes - BCD frequency
+                    // 1 byte - current tariff
+                    // 1 byte - flags
+                    // 6 bytes - reserved
+                    reportBCD(CH_FREQUENCY, reply.getShort(0), 0.01);
+                    reportTariff(reply.getByte(2));
+                    byte fl = reply.getByte(3);
+                    reportBoolean(CH_LEAKAGE, fl & 0x01);
+                    reportBoolean(CH_REVERSE, fl & 0x02);
+                } else {
+                    ok = false;
+                }
+            } else if (isLinked(CH_TARIFF)) {
                 Packet reply = doPacket(M200Protocol.Command.READ_TARIFF);
 
                 if (reply != null) {
                     // One byte - number of current tariff starting from 0
-                    updateState(CH_TARIFF, new DecimalType(reply.getByte(0) + 1));
+                    reportTariff(reply.getByte(0));
                 } else {
                     ok = false;
                 }
@@ -162,9 +177,9 @@ public class Mercury200Handler extends BaseThingHandler {
                     // Multipliers are obtained experimentally by comparing values with
                     // ones reported by official Configurator software.
                     // Thanks Incotex for so crappy protocol doc!
-                    updateState(CH_U, new DecimalType(Util.BCDToInt(reply.getShort(0)) * 0.1));
-                    updateState(CH_I, new DecimalType(Util.BCDToInt(reply.getShort(2)) * 0.01));
-                    updateState(CH_P, new DecimalType(Util.BCDToInt(reply.getTriple(4)) * 0.001));
+                    reportBCD(CH_U, reply.getShort(0), 0.1);
+                    reportBCD(CH_I, reply.getShort(2), 0.01);
+                    reportBCD(CH_P, reply.getTriple(4), 0.001);
                 } else {
                     ok = false;
                 }
@@ -180,6 +195,19 @@ public class Mercury200Handler extends BaseThingHandler {
         } catch (BridgeOfflineException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.BRIDGE_OFFLINE);
         }
+    }
+
+    private void reportTariff(byte n) {
+        // Active tariff number starts from 0
+        updateState(CH_TARIFF, new DecimalType(n + 1));
+    }
+
+    private void reportBoolean(String channel, int value) {
+        updateState(channel, value == 0 ? OnOffType.OFF : OnOffType.ON);
+    }
+
+    private void reportBCD(String channel, int value, double multiplier) {
+        updateState(channel, new DecimalType(Util.BCDToInt(value) * multiplier));
     }
 
     private @Nullable Packet doPacket(byte command) throws IOException, BridgeOfflineException {

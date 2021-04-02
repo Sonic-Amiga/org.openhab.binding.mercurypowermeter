@@ -56,6 +56,7 @@
             <channel id="voltage" typeId="voltage" />
             <channel id="current" typeId="current" />
             <channel id="power" typeId="power" />
+            <channel id="frequency" typeId="frequency" />
             <channel id="datetime" typeId="datetime" />
 		</channels>
 		<config-description>

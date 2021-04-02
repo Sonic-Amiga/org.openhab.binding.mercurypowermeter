@@ -41,5 +41,8 @@ public class MercuryBindingConstants {
     public static final String CH_U = "voltage";
     public static final String CH_I = "current";
     public static final String CH_P = "power";
+    public static final String CH_FREQUENCY = "frequency";
+    public static final String CH_LEAKAGE = "leakage";
+    public static final String CH_REVERSE = "reverse";
     public static final String CH_DATETIME = "datetime";
 }
