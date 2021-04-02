@@ -159,9 +159,12 @@ public class Mercury200Handler extends BaseThingHandler {
                     // 2 bytes - BCD voltage
                     // 2 bytes - BCD current
                     // 3 bytes - BCD power
+                    // Multipliers are obtained experimentally by comparing values with
+                    // ones reported by official Configurator software.
+                    // Thanks Incotex for so crappy protocol doc!
                     updateState(CH_U, new DecimalType(Util.BCDToInt(reply.getShort(0)) * 0.1));
-                    updateState(CH_I, new DecimalType(Util.BCDToInt(reply.getShort(2)) * 0.1));
-                    updateState(CH_P, new DecimalType(Util.BCDToInt(reply.getTriple(4)) * 0.1));
+                    updateState(CH_I, new DecimalType(Util.BCDToInt(reply.getShort(2)) * 0.01));
+                    updateState(CH_P, new DecimalType(Util.BCDToInt(reply.getTriple(4)) * 0.001));
                 } else {
                     ok = false;
                 }
