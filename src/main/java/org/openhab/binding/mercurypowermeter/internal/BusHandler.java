@@ -22,10 +22,10 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.openhab.binding.mercurypowermeter.internal.dto.M200Protocol;
 import org.openhab.binding.mercurypowermeter.internal.dto.M200Protocol.Packet;
+import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
