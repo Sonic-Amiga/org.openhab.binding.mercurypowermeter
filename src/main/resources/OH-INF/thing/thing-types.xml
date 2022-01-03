@@ -4,7 +4,7 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 	<bridge-type id="serial_bus">
-        <label>Mercury serial bus</label>
+        <label>Mercury Serial Bus</label>
         <description>RS485 bus to which your power meters are connected</description>
         <config-description>
             <parameter name="port" type="text" required="true">
