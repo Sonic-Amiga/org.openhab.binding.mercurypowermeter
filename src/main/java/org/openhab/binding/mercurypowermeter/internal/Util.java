@@ -27,7 +27,6 @@ public class Util {
         }
 
         return result;
-
     }
 
     public static int BCDToInt(int bcd) {

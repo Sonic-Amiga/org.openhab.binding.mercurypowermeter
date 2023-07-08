@@ -49,7 +49,6 @@ public class SerialBusHandler extends BusHandler implements SerialPortEventListe
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
